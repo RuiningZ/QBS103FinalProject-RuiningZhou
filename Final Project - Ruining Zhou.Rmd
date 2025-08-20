@@ -1,0 +1,447 @@
+---
+title: "Final Project - Ruining Zhou"
+author: "Ruining Zhou"
+date: "2025-08-05"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+Submission 1
+```{r}
+# read the datasets
+genes <- read.csv("~/Desktop/QBS 103/Homework/Final Project/QBS103_GSE157103_genes.csv", row.names = 1)
+series.matrix <- read.csv("~/Desktop/QBS 103/Homework/Final Project/QBS103_GSE157103_series_matrix-1.csv")
+```
+
+```{r}
+# identify one gene, one continuous covariate, and two categorical covariates in the provided dataset.
+
+# choose gene "AATF"
+genes["AATF",]
+
+# check data set about to choose continuous covariate and categorical covariates
+head(genes)
+str(genes)
+
+# from the str() we can find continuous covariate and categorical covariates
+library(stringr)
+library(dbplyr)
+sample.names <- colnames(genes)
+
+# continuous covariate is age
+# extract age from names
+# eg.name is COVUD_01_39y_male_NonICU
+# age: we ask for find the "_"before age and y after age, so that we can extract ages from name
+age <- as.numeric(str_extract(sample.names, "(?<=_)[0-9]+(?=y)"))
+age
+
+# two categorical covariates are sex (male/female) and status (ICU/NonICU)
+# sex:  we ask for find the "_"before sex and status after sex to extract
+sex <- str_extract(sample.names,"(?<=_)[a-zA-Z]+(?=_ICU|_NonICU)")
+sex
+
+# status:extract either NonICU or ICU
+status <- ifelse(str_detect(sample.names,"NonICU$"), "ICU", "NonICU")
+status
+
+# gene.AATF: get the AATF value from the genes dataset
+# since all the values are numbers, so we use as.numeric
+gene.AATF <- as.numeric(unlist(genes["AATF", ]))
+head(gene.AATF)
+
+# use function data frame put them in to a new summary dataset covid.data
+covid.data <- data.frame(
+  sample = sample.names,
+  sex = sex,
+  age = age,
+  status = status,
+  gene.value = gene.AATF
+)
+
+head(covid.data)
+```
+
+```{r}
+# Histogram for gene expression
+histogram.gene <- hist(covid.data$gene.value, main = "Histogram for AATF gene expression",
+                       xlab = "AATF gene expression level",
+                       ylab = "frequency",
+                       col = "lightblue")
+```
+
+```{r}
+# Scatter plot for gene expression and continuous covariate
+library(ggplot2)
+scatter.plot.gene <- ggplot(covid.data, aes(x = age, y = gene.value)) + 
+                    # add points to our scatter plot
+                    geom_point() +
+                    # change labels
+                    labs(title = "Scatter plot for gene expression and age",
+                    x = "Age (years)",y = "AATF gene expression level") +
+                    theme_minimal()
+scatter.plot.gene
+```
+
+
+```{r}
+# Box plot of gene expression separated by both categorical covariates
+library(ggplot2)
+box.plot.gene <- ggplot(covid.data, aes(x = interaction(sex, status), y = gene.value)) + 
+                    # add box plot
+                    geom_boxplot() +
+                    # change labels
+                    labs(title = "Boxplot of gene expression separated by sex and status",
+                    x = "sex&status",y = "AATF gene expression level") +
+                    theme_minimal()
+box.plot.gene
+```
+
+
+Submission 2
+```{r}
+# build a function to create the plots I made for Presentation 1
+library(ggplot2)
+library(stringr)
+
+three.in.one.plot <- function(genes){
+  # one continuous covariate is age
+  # two categorical covariates are sex (male/female) and status (ICU/NonICU)
+  sample.names <- colnames(genes)
+  age <- as.numeric(str_extract(sample.names, "(?<=_)[0-9]+(?=y)"))
+  sex <- str_extract(sample.names,"(?<=_)[a-zA-Z]+(?=_ICU|_NonICU)")
+  status <- ifelse(str_detect(sample.names,"NonICU$"), "ICU", "NonICU")
+
+  # gene name:gene.AATF
+  # the gene I chose
+  gene.AATF <- as.numeric(unlist(genes["AATF", ]))
+
+  # name of the data frame: covid.data
+  # use function data frame put them in to a new summary dataset covid.data
+  covid.data <- data.frame(
+    sample = sample.names,
+    sex = sex,
+    age = age,
+    status = status,
+    gene.value = gene.AATF
+  )
+  
+  # histogram for gene expression
+  histogram.gene <- hist(covid.data$gene.value, main = "Histogram for AATF gene expression",
+                       xlab = "AATF gene expression level",
+                       ylab = "frequency",
+                       col = "lightblue")
+  
+  # Scatter plot for gene expression and continuous covariate
+  scatter.plot.gene <- ggplot(covid.data, aes(x = age, y = gene.value)) + 
+                    # add points to our scatter plot
+                    geom_point() +
+                    # change labels
+                    labs(title = "Scatter plot for gene expression and age",
+                    x = "Age (years)",y = "AATF gene expression level") +
+                    theme_minimal()
+  print(scatter.plot.gene)
+  
+  # Box plot of gene expression separated by both categorical covariates
+  box.plot.gene <- ggplot(covid.data, aes(x = interaction(sex, status), y = gene.value)) + 
+                    # add box plot
+                    geom_boxplot() +
+                    # change labels
+                    labs(title = "Boxplot of gene expression separated by sex and status",
+                    x = "sex&status",y = "AATF gene expression level") +
+                    theme_minimal()
+  print(box.plot.gene)
+}
+
+three.in.one.plot(genes)
+```
+
+fixed Submission 2
+```{r}
+library(ggplot2)
+library(stringr)
+library(dplyr)
+
+three.in.one.plot <- function(genes) {
+
+  sample.names <- colnames(genes)
+
+  # extract covariates
+  age      <- as.numeric(str_extract(sample.names, "(?<=_)[0-9]+(?=y)"))
+  sex_raw  <- str_extract(sample.names, "(?<=_)[a-zA-Z]+(?=_ICU|_NonICU)")
+  status_raw <- ifelse(str_detect(sample.names, "NonICU$"), "ICU", "Non-ICU")
+
+  Sex <- case_when(tolower(sex_raw) == "male"   ~ "Male", tolower(sex_raw) == "female" ~ "Female", TRUE ~ "Unknown")
+  Status <- status_raw
+
+  Sex    <- factor(Sex, levels = c("Female", "Male", "Unknown"))
+  Status <- factor(Status, levels = c("Non-ICU", "ICU"))
+
+  SexStatus <- factor(paste(Sex, Status, sep = " & "),
+                      levels = c("Female & ICU","Male & ICU", "Female & Non-ICU","Male & Non-ICU", "Unknown & Non-ICU","Unknown & ICU"))
+
+  # AATF expression
+  gene.AATF <- as.numeric(unlist(genes["AATF", ]))
+
+  covid.data <- data.frame(
+    sample = sample.names,
+    Age= age,
+    Sex = Sex,
+    Status = Status,
+    SexStatus = SexStatus,
+    gene.value = gene.AATF
+  )
+
+  # Histogram (capitalized labels)
+  hist(covid.data$gene.value,
+       main = "Histogram of AATF Gene Expression",
+       xlab = "AATF Gene Expression Level",
+       ylab = "Frequency",
+       col  = "lightblue")
+
+  # Scatter plot (capitalized labels)
+  p_scatter <- ggplot(covid.data, aes(x = Age, y = gene.value)) +
+    geom_point() +
+    labs(title = "AATF Gene Expression vs. Age",
+         x = "Age (years)", y = "AATF Gene Expression Level") +
+    theme_minimal()
+  print(p_scatter)
+
+  # Box plot with x-axis
+  p_box <- ggplot(covid.data, aes(x = SexStatus, y = gene.value)) +
+    geom_boxplot() +
+    labs(title = "AATF Gene Expression by Sex and Status",
+         x = "Sex and Status", y = "AATF Gene Expression Level") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 30, hjust = 1))
+  print(p_box)
+}
+
+three.in.one.plot(genes)
+```
+
+Final Project 
+
+LaTeX of summary statistics
+```{r}
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+set.seed(103) 
+# since this data set has no more 2 additional continuous and 1 additional categorical variable
+# so I did created additional categorical variable
+
+# previous continuous covariate is age
+# new continuous covariate are CRP and AATF expression 
+# C-reactive protein which also called CRP, this is a common bio data of inflammation in blood, measured in mg/L
+covid.data$crp.mg.l. <- round(rnorm(nrow(covid.data), mean = 10, sd = 5), 2)
+
+# previous two categorical covariates are sex (male/female) and status (ICU/NonICU)
+# new categorical covariates is vaccinate whether the patient did or did not fully vaccinated
+covid.data$vaccinated <- sample(c("Yes", "No"), nrow(covid.data), replace = TRUE)  
+
+# LaTeX summary table
+summary_table <- covid.data %>%
+  group_by(status) %>%
+  summarise( n = n(),
+    
+    # No.1 categorical variable: sex
+    male.n = sum(sex == "male"),
+    male.pct = round(100 * mean(sex == "male"), 1),
+    
+    # No.2 categorical variable: vaccinated
+    vaccinated.yes = sum(vaccinated == "Yes"),
+    vaccinated.yes.pct = round(100 * mean(vaccinated == "Yes"), 1),
+    
+    # No.3 categorical variable: status (reported as ICU = yes)
+    #status.icu.n = sum(status == "ICU"),              
+    #status.icu.pct = round(100 * mean(status == "ICU"), 1),
+    
+    # No.1 continuous variable: age
+    age.mean = round(mean(age, na.rm = TRUE), 1),
+    age.sd = round(sd(age, na.rm = TRUE), 1),
+    
+    # No.2 continuous variable: gene.value
+    gene.mean = round(mean(gene.value, na.rm = TRUE), 2),
+    gene.sd = round(sd(gene.value, na.rm = TRUE), 2),
+    
+    # No.3 continuous variable: crp.mg.l.
+    crp.mean = round(mean(crp.mg.l., na.rm = TRUE), 2),
+    crp.sd = round(sd(crp.mg.l., na.rm = TRUE), 2)
+  ) %>%
+  
+  mutate(
+    `Sex (male)` = paste0(male.n, " (", male.pct, "%)"),
+    `Vaccinated (Yes)` = paste0(vaccinated.yes, " (", vaccinated.yes.pct, "%)"),
+    #`Status = ICU`      = paste0(status.icu.n, " (", status.icu.pct, "%)"),
+    `Age` = paste0(age.mean, " (", age.sd, ")"),
+    `AATF gene` = paste0(gene.mean, " (", gene.sd, ")"),
+    `CRP (mg/L)` = paste0(crp.mean, " (", crp.sd, ")")
+  ) %>%
+  select(status, n, `Sex (male)`, `Vaccinated (Yes)`, Age, `AATF gene`, `CRP (mg/L)`)
+
+kable(summary_table, format = "latex", booktabs = TRUE, caption = "Summary Statistics Stratified by Status") %>%
+  kable_styling(latex_options = c("hold_position", "striped"))
+```
+
+```{r}
+library(tibble)
+library(knitr)
+library(kableExtra)
+
+summary_table_t <- summary_table %>%
+  t() %>%
+  as.data.frame(check.names = FALSE) %>%
+  rownames_to_column(var = "Status")
+
+colnames(summary_table_t) <- c( "Status", as.character(unlist(summary_table_t[summary_table_t$Status == "status", -1]))
+)
+summary_table_t <- summary_table_t[summary_table_t$Status != "status", ]
+
+kable(summary_table_t,
+      format = "latex", booktabs = TRUE,
+      caption = "Summary Statistics Stratified by Status") %>%
+  kable_styling(latex_options = c("hold_position", "striped"))
+
+```
+
+Generate a heatmap
+```{r}
+# levels(annotation.col$Sex)
+```
+
+```{r}
+library(ggplot2)
+library(stringr)
+library(pheatmap)
+
+# 18 genes
+# choose a lot of similar names of genes
+gene.list <- c("AATF", "ABCA3", "ABCA4", "ABCA5", "ABCA6", "ABCA7", "ABCA8", "ABCA9", "ABCB1","ABCC2", "ABCB10", "ABCB11","ABCB4","ABCB5","ABCB6","ABCB7","ABCB8","ABCB9")
+valid.genes <- gene.list[gene.list %in% rownames(genes)]
+
+# numeric gene matrix
+gene.matrix <- t(sapply(valid.genes, function(g) as.numeric(genes[g, ])))
+rownames(gene.matrix) <- valid.genes
+colnames(gene.matrix) <- colnames(genes)
+
+# remove NA
+gene.matrix[!is.finite(gene.matrix)] <- NA
+
+# impute missing values by row mean
+# if entire row is NA, fill with 0
+gene.matrix <- t(apply(gene.matrix, 1, function(x) {
+  if (all(is.na(x))) {
+    x[is.na(x)] <- 0
+  } else {
+    x[is.na(x)] <- mean(x, na.rm = TRUE)
+  }
+  return(x)
+}))
+
+# annotation dataframe
+sample.names <- colnames(genes)
+
+sex_raw    <- stringr::str_extract(sample.names, "(?<=_)[A-Za-z]+(?=_ICU|_NonICU)")
+status_raw <- ifelse(stringr::str_detect(sample.names, "NonICU$"), "Non-ICU", "ICU")
+
+# capitalize each labels
+Sex <- factor(tolower(sex_raw),levels = c("female","male","unknown"), 
+              labels = c("Female","Male","Unknown"))
+Status <- factor(status_raw, levels = c("Non-ICU","ICU"))
+
+annotationData <- data.frame(Sex = Sex, Status = Status, row.names = sample.names)
+
+# color for each variable
+annotationColors <- list(
+  Sex = c("Female" = "lightpink", "Male" = "skyblue", "Unknown" = "gray70"),
+  Status = c("Non-ICU" = "forestgreen", "ICU" = "orange")
+)
+
+# draw heatmap
+pheatmap(
+  mat = gene.matrix,
+  scale = "column", # not really sure if we need this, class note did not have this
+  annotation_col = annotationData,
+  annotation_colors = annotationColors,
+  clustering_distance_rows = "euclidean",
+  clustering_distance_cols = "euclidean",
+  clustering_method = "complete",
+  show_colnames = FALSE,
+  fontsize_row = 10,
+  main = "Heatmap of 18 gene expressions"
+)
+```
+
+```{r}
+# if we need all the variables name
+pheatmap(
+  mat = gene.matrix,
+  scale = "column", 
+  annotation_col = annotationData, 
+  annotation_colors = annotationColors,
+  clustering_distance_rows = "euclidean",
+  clustering_distance_cols = "euclidean", 
+  clustering_method = "complete", 
+  show_colnames = TRUE, 
+  show_rownames = TRUE, 
+  angle_col = 45, 
+  fontsize_row = 10, 
+  fontsize_col = 8, 
+  main = "Heatmap of 18 gene expressions" )
+```
+
+Going through the documentation for ggplot2, generate a plot type that we did not previously discuss in class that describes data in a new and unique way
+```{r}
+library(ggplot2)
+library(stringr)
+
+sample.names <- colnames(genes)
+
+sex_raw    <- str_extract(sample.names, "(?<=_)[A-Za-z]+(?=_ICU|_NonICU)")
+status_raw <- ifelse(str_detect(sample.names, "NonICU$"), "Non-ICU", "ICU")  
+
+# capitalize each labels
+Sex <- factor(tolower(sex_raw),levels = c("female","male","unknown"), labels = c("Female","Male","Unknown"))
+Status <- factor(status_raw, levels = c("Non-ICU","ICU"))
+
+# combined x-axis label
+SexStatus <- factor(paste(Sex, Status, sep = " & "),levels = c("Female & Non-ICU","Female & ICU", "Male & Non-ICU","Male & ICU", "Unknown & Non-ICU","Unknown & ICU"))
+
+gene.AATF <- as.numeric(genes["AATF", , drop = TRUE])
+
+covid.data <- data.frame(
+  sample = sample.names,
+  Sex = Sex,
+  Status = Status,
+  SexStatus = SexStatus,
+  gene.value = gene.AATF
+)
+
+# Violin plot with jittered points
+ggplot(covid.data, aes(x = SexStatus, y = gene.value, fill = Sex)) +
+  geom_violin(trim = FALSE, alpha = 0.6) +
+  geom_jitter(width = 0.15, alpha = 0.8, size = 1.2, color = "black") +
+  labs(title = "AATF gene expression by Sex and Status",
+    x = "Sex & Status",
+    y = "AATF gene expression level",
+    fill = "Sex") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+  scale_fill_manual(values = c("Female" = "lightpink", "Male" = "skyblue", "Unknown" = "gray70"))
+
+```
+
+
+```{r}
+# R package Reference
+citation("dplyr")
+citation("ggplot2")
+citation("pheatmap")
+citation("knitr")
+citation("kableExtra")
+citation("stringr")
+citation("tibble")
+```
+
