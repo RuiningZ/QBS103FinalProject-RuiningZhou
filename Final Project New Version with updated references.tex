@@ -1,0 +1,143 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{float} 
+\title{QBS 103 Final Project}
+\author{Ruining Zhou }
+\date{August 2025}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+This project explores how the expression of different genes varies between different characteristics of patients. The data set analyzed in this project is derived from the study “Large-Scale Multi-omic Analysis of COVID-19 Severity” conducted by Overmyer et al. (2020). In this study, the authors performed RNA sequencing and high-resolution mass spectrometry on 128 blood samples collected from patients positive for COVID-19 and negative for COVID-19. They collected different stages and results of the disease. The authors identified 219 molecular characteristics that are very significant for the status and severity of COVID-19. This data set provides a comprehensive investigation of the molecular changes associated with the status and severity of COVID-19.
+
+I chose AATF (Apoptosis Antagonizing Transcription Factor) in my main plot. The apoptosis-antagonizing transcription factor (AATF) participates in transcriptional regulation, cell cycle control, DNA damage reactions, and the implementation of cell death processes. It also interacts directly with nuclear hormone receptors, increasing their transactivation (Sharma, 2013). All of these processes may be highly relevant in COVID-19. The AATF gene plays an important role in regulating cell survival and stress responses. Examining the expression of AATF may provide insights into COVID-19.
+
+This project focused on the different genes and key variables in the sample, including age (continuous), sex (male/female), and clinical status (ICU / non-ICU). To examine how gene expression varies across these variables, this project generated a series of outputs in R, including: (i) a table of summary statistics, (ii) a histogram of gene expression, (iii) a scatter plot of gene expression against the selected continuous covariate, (iv) a box plot of gene expression stratified by the two selected categorical covariates, (v) a heatmap of 10 genes, and (vi) a violin plot. These descriptive analyzes illustrate the relationship between gene expression and key demographic and clinical covariates in the data set.
+
+\section{Methods}
+For this project, the main analysis focused on the relationship between the gene expression and covariates. The analysis tool for this project is RStudio.
+
+The data set analyzed in this project was obtained from the study “Large-Scale Multi-omic Analysis of COVID-19 Severity” (Overmyer et al., 2020). From the dataset, the main plot selected continuous covariate is age and two selected categorical covariates are sex (male/female) and status (ICU/NonICU).These covariates were used to examine variation in gene expression across demographics.
+
+To explore the relationship between gene expression and covariates, this project generated a series of descriptive analyses using R packages including ggplot2 (H, 2016), pheatmap (Kolde, 2025), dplyr (Wickham, 2023), knitr (Yihui, 2015 & Xie, 2025), kableExtra (Zhu, 2024), tibble (Müller, 2023), and stringr (Wickham, 2023). 
+Specifically, this project produced:
+(i) a table of summary statistics separated by ICU status;
+(ii) a histogram of AATF expression values;
+(iii) a scatter plot of AATF expression vs. Age;
+(iv) a box plot of AATF expression separated by Sex and ICU Status;
+(v) a heatmap of 18 selected genes;
+(vi) a violin plot for AATF gene expression by Sex and Status
+These plots were created to show both the distributional features of gene expression and its relationship.
+
+\section{Results}
+\subsection{Table of summary statistics}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Plots/table of summary statistics separated by ICU Status.png}
+    \caption{The table of summary statistics separated by ICU Status}
+    \label{fig:placeholder}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Plots/table of summary statistics separated by ICU Status 2.png}
+    \caption{The table of summary statistics separated by ICU Status 2}
+    \label{fig:placeholder}
+\end{figure}
+This summary statistics table is stratified by ICU status. It showed that ICU patients were generally younger with a mean age 59.7 versus a mean age 63.5 with NonICU patients. It had a higher average AATF gene expression which is 40.67 versus 33.56 compared to NonICU patients. The CRP levels were slightly lower in the ICU group which is 9.65 versus NonICU group is 10.95.
+
+\subsection{Histogram of gene}
+\begin{figure} [H]
+    \centering
+    \includegraphics[width=1\linewidth]{Plots/histogram of AATF expression values.png}
+    \caption{ a histogram of AATF expression values}
+    \label{fig:placeholder}
+\end{figure}
+The histogram of AATF gene expression shows that expression values are roughly centered between 30 and 40 with most samples clustering in this range. The distribution is approximately symmetric with a couple lower and higher expression outliers. This suggests the variability is moderate across participants.
+
+
+\subsection{Scatter plot of gene + continuous covariate}
+\begin{figure} [H]
+    \centering
+    \includegraphics[width=1\linewidth]{Plots/scatter plot of AATF expression vs. Age.png}
+    \caption{a scatter plot of AATF expression vs. Age}
+    \label{fig:placeholder}
+\end{figure}
+The scatterplot shows the relationship between AATF gene expression levels and age from the data set. There does not appear to be a clear linear trend in which the points are widely scattered across age groups. This suggests that there may not be a strong relationship between AATF gene expression levels and age.
+
+
+\subsection{Boxplot of gene stratified by 2 categorical covariates}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Plots/box plot of AATF expression separated by Sex and ICU Status.png}
+    \caption{The box plot of AATF expression separated by Sex and ICU Status}
+    \label{fig:placeholder}
+\end{figure}
+The box plot shows the relationship between AATF expression separated by Sex and ICU Status. The trend might indicate that AATF is increased in ICU patients. The sex differences are modest which females in ICU having a slightly higher median than males.
+
+
+\subsection{Heatmap}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Plots/heatmap of 18 selected genes .png}
+    \caption{The heatmap of 18 selected genes}
+    \label{fig:placeholder}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Plots/heatmap with column name.png}
+    \caption{The heatmap with column name}
+    \label{fig:placeholder}
+\end{figure}
+The heatmap includes 18 selected gene expressions that show clustering of patients by ICU status and sex. In this row scaled heatmap, AATF gene is the dominant signal which is consistently warmer across most samples. The ABCA7 gene is near baseline with small variance but no clear group pattern which implying that it contributes little to class differentiation. Overall, the panel provides high within-gene relative elevation for AATF gene as well as flat behavior for ABCA7 gene.
+
+
+\subsection{Violin plot}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Plots/a violin plot for AATF gene expression by Sex and Status.png}
+    \caption{a violin plot for AATF gene expression by Sex and Status}
+    \label{fig:placeholder}
+\end{figure}
+The violin plot of AATF gene expression by sex and ICU status shows higher average expression in ICU patients compared to Non-ICU patients across both males and females. This result is similar to the box plot. The distributions also suggest that females tend to have slightly higher expression levels than males with both ICU group and Non-ICU group.
+
+\section{References}
+H. Wickham. ggplot2: Elegant Graphics for Data Analysis. Springer-Verlag
+  New York, 2016.
+
+Kolde R (2025). _pheatmap: Pretty Heatmaps_. R package version 1.0.13,
+  <https://CRAN.R-project.org/package=pheatmap>.
+
+Müller K, Wickham H (2023). _tibble: Simple Data Frames_. R package
+  version 3.2.1, <https://CRAN.R-project.org/package=tibble>.
+  
+Overmyer, K. A., Shishkova, E., Miller, I. J., Balnis, J., Bernstein, M. N., Peters-Clarke, T. M., Meyer, J. G., Quan, Q., Muehlbauer, L. K., Trujillo, E. A., He, Y., Chopra, A., Chieng, H. C., Tiwari, A., Judson, M. A., Paulson, B., Brademan, D. R., Zhu, Y., Serrano, L. R., Linke, V., … Jaitovich, A. (2021). Large-Scale Multi-omic Analysis of COVID-19 Severity. Cell systems, 12(1), 23–40.e7. https://doi.org/10.1016/j.cels.2020.10.003
+
+Sharma, M. Apoptosis-antagonizing transcription factor (AATF) gene silencing: role in induction of apoptosis and down-regulation of estrogen receptor in breast cancer cells. Biotechnol Lett 35, 1561–1570 (2013). https://doi.org/10.1007/s10529-013-1257-8
+
+Wickham H, François R, Henry L, Müller K, Vaughan D (2023). _dplyr: A
+  Grammar of Data Manipulation_. R package version 1.1.4,
+  <https://CRAN.R-project.org/package=dplyr>.
+
+Wickham H (2023). _stringr: Simple, Consistent Wrappers for Common String
+  Operations_. R package version 1.5.1,
+  <https://CRAN.R-project.org/package=stringr>.
+
+Xie Y (2025). _knitr: A General-Purpose Package for Dynamic Report
+  Generation in R_. R package version 1.50, <https://yihui.org/knitr/>.
+
+Yihui Xie (2015) Dynamic Documents with R and knitr. 2nd edition. Chapman
+  and Hall/CRC. ISBN 978-1498716963
+
+Yihui Xie (2014) knitr: A Comprehensive Tool for Reproducible Research in
+  R. In Victoria Stodden, Friedrich Leisch and Roger D. Peng, editors,
+  Implementing Reproducible Computational Research. Chapman and Hall/CRC.
+  ISBN 978-1466561595
+
+Zhu H (2024). _kableExtra: Construct Complex Table with 'kable' and Pipe
+  Syntax_. R package version 1.4.0,
+  <https://CRAN.R-project.org/package=kableExtra>.
+  
+\end{document}
