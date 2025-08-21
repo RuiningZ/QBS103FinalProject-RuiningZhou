@@ -1,0 +1,97 @@
+---
+title: "Submission 1"
+author: "Ruining Zhou"
+date: "2025-07-05"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+# read the datasets
+genes <- read.csv("~/Desktop/QBS 103/Homework/Final Project/QBS103_GSE157103_genes.csv", row.names = 1)
+series.matrix <- read.csv("~/Desktop/QBS 103/Homework/Final Project/QBS103_GSE157103_series_matrix-1.csv")
+```
+
+```{r}
+# identify one gene, one continuous covariate, and two categorical covariates in the provided dataset.
+
+# choose gene "AATF"
+genes["AATF",]
+
+# check data set about to choose continuous covariate and categorical covariates
+head(genes)
+str(genes)
+
+# from the str() we can find continuous covariate and categorical covariates
+library(stringr)
+library(dbplyr)
+sample.names <- colnames(genes)
+
+# continuous covariate is age
+# extract age from names
+# eg.name is COVUD_01_39y_male_NonICU
+# age: we ask for find the "_"before age and y after age, so that we can extract ages from name
+age <- as.numeric(str_extract(sample.names, "(?<=_)[0-9]+(?=y)"))
+age
+
+# two categorical covariates are sex (male/female) and status (ICU/NonICU)
+# sex:  we ask for find the "_"before sex and status after sex to extract
+sex <- str_extract(sample.names,"(?<=_)[a-zA-Z]+(?=_ICU|_NonICU)")
+sex
+
+# status:extract either NonICU or ICU
+status <- ifelse(str_detect(sample.names,"NonICU$"), "ICU", "NonICU")
+status
+
+# gene.AATF: get the AATF value from the genes dataset
+# since all the values are numbers, so we use as.numeric
+gene.AATF <- as.numeric(unlist(genes["AATF", ]))
+head(gene.AATF)
+
+# use function data frame put them in to a new summary dataset covid.data
+covid.data <- data.frame(
+  sample = sample.names,
+  sex = sex,
+  age = age,
+  status = status,
+  gene.value = gene.AATF
+)
+
+head(covid.data)
+```
+
+```{r}
+# Histogram for gene expression
+histogram.gene <- hist(covid.data$gene.value, main = "Histogram for AATF gene expression",
+                       xlab = "AATF gene expression level",
+                       ylab = "frequency",
+                       col = "lightblue")
+```
+
+```{r}
+# Scatter plot for gene expression and continuous covariate
+library(ggplot2)
+scatter.plot.gene <- ggplot(covid.data, aes(x = age, y = gene.value)) + 
+                    # add points to our scatter plot
+                    geom_point(color = "orange") +
+                    # change labels
+                    labs(title = "Scatter plot for gene expression and age",
+                    x = "Age (years)",y = "AATF gene expression level") +
+                    theme_minimal()
+scatter.plot.gene
+```
+
+```{r}
+# Box plot of gene expression separated by both categorical covariates
+library(ggplot2)
+box.plot.gene <- ggplot(covid.data, aes(x = interaction(sex, status), y = gene.value)) + 
+                    # add box plot
+                    geom_boxplot(color = "pink") +
+                    # change labels
+                    labs(title = "Boxplot of gene expression separated by sex and status",
+                    x = "sex&status",y = "AATF gene expression level") +
+                    theme_minimal()
+box.plot.gene
+```
+
